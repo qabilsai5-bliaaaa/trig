@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="kk" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тригонометриялық функциялардың қасиеттері — Тест</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Canvas Confetti Library -->
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts Inter & Fira Code -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Fira+Code:wght@500;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    },
+                    colors: {
+                        trig: {
+                            cyan: '#06b6d4',
+                            purple: '#a855f7',
+                            pink: '#ec4899',
+                            emerald: '#10b981',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background: radial-gradient(circle at top left, #090d16, #111827, #070a12);
+            background-attachment: fixed;
+        }
+        .glass {
+            background: rgba(17, 24, 39, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover:not(:disabled) {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(6, 182, 212, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(6, 182, 212, 0.2);
+        }
+        @keyframes pulse-green {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px 5px rgba(16, 185, 129, 0.5); }
+        }
+        @keyframes pulse-red {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            50% { transform: scale(1.1); box-shadow: 0 0 20px 5px rgba(239, 68, 68, 0.5); }
+        }
+        .score-up {
+            animation: pulse-green 0.5s ease-out;
+            color: #34d399 !important;
+        }
+        .score-down {
+            animation: pulse-red 0.5s ease-out;
+            color: #f87171 !important;
+        }
+    </style>
+</head>
+<body class="h-full text-slate-100 font-sans flex flex-col justify-between items-center p-4 sm:p-6 overflow-x-hidden select-none">
+
+    <!-- Sound Toggle -->
+    <button id="sound-toggle" onclick="toggleSound()" class="fixed top-4 right-4 z-40 w-10 h-10 rounded-full glass flex items-center justify-center text-slate-300 hover:text-white transition" title="Дыбысты қосу/өшіру">
+        <i id="sound-icon" class="fa-solid fa-volume-high text-cyan-400"></i>
+    </button>
+
+    <!-- Header / Navigation -->
+    <header class="w-full max-w-3xl glass rounded-2xl p-4 sm:p-5 mb-6 flex justify-between items-center shadow-2xl relative overflow-hidden">
+        <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl"></div>
+        <div class="flex items-center space-x-3">
+            <div class="w-11 h-11 rounded-xl bg-gradient-to-tr from-cyan-500 via-purple-500 to-pink-500 flex items-center justify-center text-white shadow-lg shadow-cyan-500/20 font-bold font-mono text-xl">
+                sin
+            </div>
+            <div>
+                <h1 class="text-lg sm:text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-cyan-200 to-purple-300">
+                    Тригонометриялық функциялар
+                </h1>
+                <p class="text-xs text-slate-400">Қасиеттері мен формулалары бойынша тест</p>
+            </div>
+        </div>
+
+        <!-- Score Badge -->
+        <div class="flex items-center space-x-2 bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-700/60 shadow-inner">
+            <i class="fa-solid fa-trophy text-amber-400 text-lg"></i>
+            <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider hidden sm:inline">Ұпай:</span>
+            <span id="score-display" class="text-2xl font-black font-mono text-amber-400 transition-all duration-300">6</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="w-full max-w-3xl flex-grow flex flex-col justify-center">
+
+        <!-- Quiz Card Container -->
+        <div id="quiz-card" class="glass rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden flex flex-col justify-between min-h-[500px]">
+            <!-- Top Bar Inside Quiz -->
+            <div>
+                <div class="flex justify-between items-center mb-3">
+                    <span id="category-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5">
+                        <i class="fa-solid fa-layer-group text-xs"></i>
+                        <span>Периодтылық</span>
+                    </span>
+                    <span id="question-progress" class="text-xs font-mono text-slate-400">
+                        Сұрақ 1 / 10
+                    </span>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="w-full bg-slate-800/80 h-2 rounded-full overflow-hidden mb-6 p-0.5 border border-slate-700/50">
+                    <div id="progress-bar" class="bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 h-full rounded-full transition-all duration-500" style="width: 10%"></div>
+                </div>
+
+                <!-- Question Title & Display -->
+                <div class="text-center my-4 sm:my-6">
+                    <p id="question-subtitle" class="text-slate-400 text-xs sm:text-sm mb-2">Төмендегі сұраққа дұрыс жауапты таңдаңыз:</p>
+                    <div class="inline-block glass-card px-6 py-4 rounded-2xl border border-cyan-500/30 shadow-lg w-full">
+                        <h2 id="question-text" class="text-xl sm:text-2xl font-bold font-mono text-white tracking-wide leading-relaxed">
+                            y = sin(x) функциясының ең кіші оң периоды неге тең?
+                        </h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Options Grid (5 options) -->
+            <div id="options-container" class="grid grid-cols-1 gap-2.5 my-4">
+                <!-- Buttons dynamically inserted here -->
+            </div>
+
+            <!-- Feedback Alert Banner -->
+            <div id="feedback-banner" class="hidden rounded-xl p-3 text-center text-sm font-semibold transition-all duration-300 flex items-center justify-center space-x-2">
+                <i id="feedback-icon" class="fa-solid"></i>
+                <span id="feedback-text"></span>
+            </div>
+
+            <!-- Action Footer -->
+            <div class="flex justify-between items-center mt-4 pt-4 border-t border-slate-800/80">
+                <button id="hint-btn" onclick="showHint()" class="text-xs text-slate-400 hover:text-cyan-300 flex items-center space-x-1.5 transition py-1 px-3 rounded-lg hover:bg-slate-800/50">
+                    <i class="fa-regular fa-lightbulb text-amber-400 text-sm"></i>
+                    <span>Формула көмекшісі</span>
+                </button>
+                <div class="text-xs text-slate-500 font-mono">
+                    Дұрыс: <span class="text-emerald-400">+1</span> | Қате: <span class="text-rose-400">-1</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Hint Modal -->
+        <div id="hint-modal" class="hidden fixed inset-0 bg-black/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="glass rounded-2xl p-6 max-w-md w-full border border-cyan-500/30 shadow-2xl relative">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="text-lg font-bold text-cyan-300 flex items-center space-x-2">
+                        <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i>
+                        <span>Формула көмекшісі</span>
+                    </h3>
+                    <button onclick="closeHint()" class="text-slate-400 hover:text-white text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="hint-content" class="text-sm text-slate-200 font-mono leading-relaxed bg-slate-900/90 p-4 rounded-xl border border-slate-800 mb-4">
+                    <!-- Hint details inserted here -->
+                </div>
+                <button onclick="closeHint()" class="w-full py-2.5 bg-gradient-to-r from-cyan-500 to-purple-600 hover:from-cyan-600 hover:to-purple-700 text-white font-semibold rounded-xl transition shadow-lg shadow-cyan-500/20">
+                    Түсінікті
+                </button>
+            </div>
+        </div>
+
+        <!-- Completion / Results Screen -->
+        <div id="result-screen" class="hidden glass rounded-3xl p-6 sm:p-10 text-center shadow-2xl relative overflow-hidden">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-cyan-400 via-purple-500 to-pink-500 flex items-center justify-center mx-auto mb-4 shadow-xl shadow-cyan-500/20">
+                <i class="fa-solid fa-award text-4xl text-slate-950"></i>
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-1">Тест Аяқталды!</h2>
+            <p id="result-badge-text" class="text-cyan-400 text-sm font-semibold mb-6">Тригонометрия білгірі!</p>
+
+            <div class="bg-slate-900/80 rounded-2xl p-6 max-w-sm mx-auto border border-slate-800/80 mb-8 space-y-3 shadow-inner">
+                <div class="flex justify-between items-center text-slate-400 text-sm">
+                    <span>Бастапқы ұпай:</span>
+                    <span class="font-mono text-white">6</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-sm">
+                    <span>Дұрыс жауаптар:</span>
+                    <span id="correct-count" class="font-mono text-emerald-400 font-bold">0</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-sm">
+                    <span>Қате жауаптар:</span>
+                    <span id="wrong-count" class="font-mono text-rose-400 font-bold">0</span>
+                </div>
+                <div class="flex justify-between items-center text-slate-400 text-sm">
+                    <span>Дұрыстық пайызы:</span>
+                    <span id="accuracy-percent" class="font-mono text-purple-400 font-bold">0%</span>
+                </div>
+                <div class="border-t border-slate-800 pt-3 flex justify-between items-center text-lg font-bold">
+                    <span class="text-white">Соңғы Нәтиже:</span>
+                    <span id="final-score" class="text-2xl font-mono text-amber-400">6 балл</span>
+                </div>
+            </div>
+
+            <button onclick="restartQuiz()" class="px-8 py-3.5 bg-gradient-to-r from-cyan-500 via-purple-500 to-pink-500 hover:opacity-90 text-white font-bold rounded-2xl shadow-lg shadow-cyan-500/25 transition transform hover:scale-105 flex items-center justify-center mx-auto space-x-2">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>Қайта Бастау</span>
+            </button>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="w-full max-w-3xl text-center text-xs text-slate-500 my-4">
+        Тригонометриялық функциялардың қасиеттері • Интерактивті тест сайты
+    </footer>
+
+    <!-- Logic Script -->
+    <script>
+        // Trigonometry Question Database (10 Comprehensive Questions)
+        const questions = [
+            {
+                category: "Периодтылық",
+                question: "y = sin(x) және y = cos(x) функцияларының ең кіші оң периоды (T) неге тең?",
+                options: ["π / 2", "π", "2π", "3π / 2", "4π"],
+                correct: 2,
+                hint: "<b>Периодтылық ережесі:</b><br>y = sin(x) мен y = cos(x) үшін негізгі период <b>T = 2π</b> (360°).<br>Ал y = tg(x) мен y = ctg(x) үшін period <b>T = π</b> (180°)."
+            },
+            {
+                category: "Жұп / Тақтылық",
+                question: "Төмендегі тригонометриялық функциялардың қайсысы ЖҰП болып табылады?",
+                options: ["f(x) = sin(x)", "f(x) = cos(x)", "f(x) = tg(x)", "f(x) = ctg(x)", "f(x) = sin(2x)"],
+                correct: 1,
+                hint: "<b>Жұп және тақ функциялар:</b><br>• cos(-x) = cos(x) (ЖҰП - минус жойылады)<br>• sin(-x) = -sin(x) (ТАҚ)<br>• tg(-x) = -tg(x) (ТАҚ)<br>• ctg(-x) = -ctg(x) (ТАҚ)"
+            },
+            {
+                category: "Мәндер жиыны",
+                question: "y = cos(x) функциясының мәндер жиыны E(y) қай аралық болады?",
+                options: ["(-∞; +∞)", "[0; 1]", "[-1; 1]", "(-1; 1)", "[0; +∞)"],
+                correct: 2,
+                hint: "<b>Мәндер жиыны E(y):</b><br>Синус пен косинус -1-ден кіші және 1-ден үлкен мән қабылдай алмайды:<br><b>-1 ≤ cos(x) ≤ 1</b> немесе <b>E(y) = [-1; 1]</b>"
+            },
+            {
+                category: "Ширектердегі таңбалар",
+                question: "II ширекте (90° < α < 180°) sin(α) мен cos(α) таңбалары қандай болады?",
+                options: ["sin(+) және cos(+)", "sin(-) және cos(-)", "sin(-) және cos(+)", "sin(+) және cos(-)", "Екеуі де 0-ге тең"],
+                correct: 3,
+                hint: "<b>Ширектердегі таңбалар:</b><br>• I ширек: sin(+), cos(+)<br>• II ширек: sin(+), cos(-)<br>• III ширек: sin(-), cos(-)<br>• IV ширек: sin(-), cos(+)"
+            },
+            {
+                category: "Өрнектің мәні",
+                question: "sin(30°) + cos(60°) өрнегінің мәнін табыңыз:",
+                options: ["0", "1/2", "1", "√3 / 2", "√2"],
+                correct: 2,
+                hint: "<b>Кестелік мәндер:</b><br>sin(30°) = 1/2<br>cos(60°) = 1/2<br>Есептеу: 1/2 + 1/2 = <b>1</b>"
+            },
+            {
+                category: "Негізгі тепе-теңдік",
+                question: "Тригонометрияның негізгі тепе-теңдігі бойынша sin²(α) + cos²(α) неге тең?",
+                options: ["0", "1", "2", "tg(α)", "1 / 2"],
+                correct: 1,
+                hint: "<b>Негізгі тригонометриялық тепе-теңдік:</b><br>Кез келген бұрыш үшін:<br><b>sin²(α) + cos²(α) = 1</b>"
+            },
+            {
+                category: "Келтіру формуласы",
+                question: "Келтіру формуласын қолданып тап: sin(π - x) = ?",
+                options: ["-sin(x)", "cos(x)", "sin(x)", "-cos(x)", "tg(x)"],
+                correct: 2,
+                hint: "<b>Келтіру формулаларының ережесі:</b><br>1) π (180°) болғанда функция аты өзгермейді (синус болып қалады).<br>2) (π - x) II ширекке жатады, II ширекте синус оң <b>(+)</b>.<br>Сонымен: sin(π - x) = <b>sin(x)</b>"
+            },
+            {
+                category: "Экстремум мәндері",
+                question: "y = 3sin(x) + 2 өрнегінің ЕҢ ҮЛКЕН мәні неге тең?",
+                options: ["3", "2", "5", "1", "6"],
+                correct: 2,
+                hint: "<b>Ең үлкен мәнді табу:</b><br>sin(x) функциясының ең үлкен мәні <b>1</b>-ге тең.<br>Орнына қойсақ: y_max = 3·(1) + 2 = <b>5</b>"
+            },
+            {
+                category: "Анықталу облысы",
+                question: "y = tg(x) функциясының мағынасы болмайтын (анықталмаған) нүктелері қандай?",
+                options: ["x = πk", "x = π/2 + πk", "x = 2πk", "x = π/4 + πk", "Барлық x үшін анықталған"],
+                correct: 1,
+                hint: "<b>Тангенстің анықталу облысы:</b><br>tg(x) = sin(x) / cos(x).<br>Бөлімі cos(x) = 0 болатын нүктелерде тангенс анықталмаған.<br>cos(x) = 0 орындалады: <b>x = π/2 + πk, k∈Z</b>"
+            },
+            {
+                category: "Периодты табу",
+                question: "y = cos(4x) функциясының ең кіші оң периодын табыңыз:",
+                options: ["2π", "π", "π / 2", "π / 4", "8π"],
+                correct: 2,
+                hint: "<b>Формула:</b> y = cos(kx) функциясының периоды <b>T = 2π / |k|</b>.<br>Мұнда k = 4, сондықтан:<br>T = 2π / 4 = <b>π / 2</b>"
+            }
+        ];
+
+        // State variables
+        let currentIndex = 0;
+        let score = 6;
+        let correctAnswers = 0;
+        let wrongAnswers = 0;
+        let isAnswered = false;
+        let soundEnabled = true;
+
+        // UI elements
+        const scoreDisplay = document.getElementById('score-display');
+        const categoryBadge = document.getElementById('category-badge');
+        const questionProgress = document.getElementById('question-progress');
+        const progressBar = document.getElementById('progress-bar');
+        const questionText = document.getElementById('question-text');
+        const optionsContainer = document.getElementById('options-container');
+        const feedbackBanner = document.getElementById('feedback-banner');
+        const feedbackIcon = document.getElementById('feedback-icon');
+        const feedbackText = document.getElementById('feedback-text');
+        const quizCard = document.getElementById('quiz-card');
+        const resultScreen = document.getElementById('result-screen');
+        const hintModal = document.getElementById('hint-modal');
+        const hintContent = document.getElementById('hint-content');
+
+        // Web Audio API Synth Sounds
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15); // A5
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+                    osc.frequency.exponentialRampToValueAtTime(130, audioCtx.currentTime + 0.2);
+                    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch(e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                icon.className = 'fa-solid fa-volume-high text-cyan-400';
+            } else {
+                icon.className = 'fa-solid fa-volume-xmark text-slate-500';
+            }
+        }
+
+        // Initialize / Load Question
+        function loadQuestion() {
+            isAnswered = false;
+            hideFeedback();
+
+            const q = questions[currentIndex];
+            
+            categoryBadge.querySelector('span').innerText = q.category;
+            questionProgress.innerText = `Сұрақ ${currentIndex + 1} / ${questions.length}`;
+            progressBar.style.width = `${((currentIndex + 1) / questions.length) * 100}%`;
+            questionText.innerText = q.question;
+
+            optionsContainer.innerHTML = '';
+            const prefixes = ['A', 'B', 'C', 'D', 'E'];
+
+            q.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = `glass-card w-full py-3 px-4 rounded-xl flex items-center justify-between text-left text-sm font-semibold transition border border-slate-700/60 focus:outline-none`;
+                
+                btn.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="w-7 h-7 rounded-lg bg-slate-800/90 text-cyan-400 font-mono flex items-center justify-center text-xs border border-slate-700/80">
+                            ${prefixes[idx]}
+                        </span>
+                        <span class="font-mono text-sm sm:text-base text-slate-100">${opt}</span>
+                    </div>
+                    <i class="fa-regular fa-circle text-slate-600 option-icon"></i>
+                `;
+
+                btn.onclick = () => checkAnswer(idx, btn);
+                optionsContainer.appendChild(btn);
+            });
+        }
+
+        // Check selected answer
+        function checkAnswer(selectedIndex, btnElement) {
+            if (isAnswered) return;
+            isAnswered = true;
+
+            const q = questions[currentIndex];
+            const allButtons = optionsContainer.children;
+
+            for (let btn of allButtons) {
+                btn.disabled = true;
+                btn.classList.remove('hover:border-cyan-500');
+            }
+
+            if (selectedIndex === q.correct) {
+                score += 1;
+                correctAnswers += 1;
+                animateScore(true);
+                playSound('correct');
+
+                btnElement.classList.add('bg-emerald-500/20', 'border-emerald-500', 'text-emerald-200');
+                btnElement.querySelector('.option-icon').className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+                
+                showFeedback(true, "Тамаша! Дұрыс жауап (+1 балл)");
+                
+                confetti({
+                    particleCount: 45,
+                    spread: 60,
+                    origin: { y: 0.75 }
+                });
+            } else {
+                score -= 1;
+                wrongAnswers += 1;
+                animateScore(false);
+                playSound('wrong');
+
+                btnElement.classList.add('bg-rose-500/20', 'border-rose-500', 'text-rose-200');
+                btnElement.querySelector('.option-icon').className = 'fa-solid fa-circle-xmark text-rose-400 text-lg';
+
+                const correctBtn = allButtons[q.correct];
+                correctBtn.classList.add('bg-emerald-500/20', 'border-emerald-500');
+                correctBtn.querySelector('.option-icon').className = 'fa-solid fa-circle-check text-emerald-400 text-lg';
+
+                showFeedback(false, "Қате! Дұрыс жауап көрсетілді (-1 балл)");
+            }
+
+            setTimeout(() => {
+                currentIndex++;
+                if (currentIndex < questions.length) {
+                    loadQuestion();
+                } else {
+                    showResults();
+                }
+            }, 1900);
+        }
+
+        function animateScore(isIncrease) {
+            scoreDisplay.innerText = score;
+            const animClass = isIncrease ? 'score-up' : 'score-down';
+            scoreDisplay.classList.add(animClass);
+            setTimeout(() => {
+                scoreDisplay.classList.remove(animClass);
+            }, 600);
+        }
+
+        function showFeedback(isCorrect, message) {
+            feedbackBanner.classList.remove('hidden', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-400', 'bg-rose-500/10', 'border-rose-500/30', 'text-rose-400');
+            
+            if (isCorrect) {
+                feedbackBanner.classList.add('bg-emerald-500/10', 'border', 'border-emerald-500/30', 'text-emerald-400');
+                feedbackIcon.className = 'fa-solid fa-circle-check text-lg';
+            } else {
+                feedbackBanner.classList.add('bg-rose-500/10', 'border', 'border-rose-500/30', 'text-rose-400');
+                feedbackIcon.className = 'fa-solid fa-triangle-exclamation text-lg';
+            }
+            
+            feedbackText.innerText = message;
+        }
+
+        function hideFeedback() {
+            feedbackBanner.classList.add('hidden');
+        }
+
+        function showHint() {
+            hintContent.innerHTML = questions[currentIndex].hint;
+            hintModal.classList.remove('hidden');
+        }
+
+        function closeHint() {
+            hintModal.classList.add('hidden');
+        }
+
+        function showResults() {
+            quizCard.classList.add('hidden');
+            resultScreen.classList.remove('hidden');
+
+            const percent = Math.round((correctAnswers / questions.length) * 100);
+
+            document.getElementById('correct-count').innerText = correctAnswers;
+            document.getElementById('wrong-count').innerText = wrongAnswers;
+            document.getElementById('accuracy-percent').innerText = `${percent}%`;
+            document.getElementById('final-score').innerText = `${score} балл`;
+
+            const badgeText = document.getElementById('result-badge-text');
+            if (percent >= 80) {
+                badgeText.innerText = "🌟 Тригонометрия шебері!";
+            } else if (percent >= 50) {
+                badgeText.innerText = "👍 Жақсы нәтиже! Қайталап көріңіз.";
+            } else {
+                badgeText.innerText = "📚 Тақырыпты қайталау ұсынылады.";
+            }
+
+            confetti({
+                particleCount: 100,
+                spread: 90,
+                origin: { y: 0.5 }
+            });
+        }
+
+        function restartQuiz() {
+            currentIndex = 0;
+            score = 6;
+            correctAnswers = 0;
+            wrongAnswers = 0;
+            scoreDisplay.innerText = score;
+            
+            resultScreen.classList.add('hidden');
+            quizCard.classList.remove('hidden');
+            
+            loadQuestion();
+        }
+
+        window.onload = function() {
+            loadQuestion();
+        };
+    </script>
+</body>
+</html>
